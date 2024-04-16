@@ -1,11 +1,18 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Header
+from rclpy.qos import QoSProfile
+from rclpy.qos import QoSHistoryPolicy, QoSReliabilityPolicy, QoSDurabilityPolicy
 
 class SimpleTimeSub(Node):
     def __init__(self):
         super().__init__('simpleTimeSub') # type: ignore
-        self.pub = self.create_subscription(Header, 'timeTopic', self.sub_callback, 10)
+        qos_profile = QoSProfile(
+            history = QoSHistoryPolicy.KEEP_LAST,
+            reliability = QoSReliabilityPolicy.RELIABLE,
+            durability = QoSDurabilityPolicy.TRANSIENT_LOCAL,
+            depth = 10)
+        self.pub = self.create_subscription(Header, 'timeTopic', self.sub_callback, qos_profile)
 
     def sub_callback(self, msg: Header):
         print(f"frame_id: {msg.frame_id}")

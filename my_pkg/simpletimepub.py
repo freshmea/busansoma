@@ -1,12 +1,20 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Header
+from rclpy.qos import QoSProfile
+from rclpy.qos import QoSHistoryPolicy, QoSReliabilityPolicy, QoSDurabilityPolicy
 
 class SimpleTimePub(Node):
     def __init__(self):
         super().__init__('simpleTimePub') # type: ignore
         self.create_timer(1, self.timer_callback)
-        self.pub = self.create_publisher(Header, 'timeTopic', 10)
+        qos_profile = QoSProfile(
+            history = QoSHistoryPolicy.KEEP_LAST,
+            reliability = QoSReliabilityPolicy.RELIABLE,
+            durability = QoSDurabilityPolicy.TRANSIENT_LOCAL,
+            depth = 10)
+
+        self.pub = self.create_publisher(Header, 'timeTopic', qos_profile)
         self.count = 0
 
     def timer_callback(self):
