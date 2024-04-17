@@ -15,8 +15,8 @@ class SimpleTimeSub(Node):
         self.pub = self.create_subscription(Header, 'timeTopic', self.sub_callback, qos_profile)
 
     def sub_callback(self, msg: Header):
-        print(f"frame_id: {msg.frame_id}")
-        print(f"stamp: {msg.stamp.sec}.{msg.stamp.nanosec}")
+        self.get_logger().info(f"frame_id: {msg.frame_id}")
+        self.get_logger().info(f"stamp: {msg.stamp.sec}.{msg.stamp.nanosec}")
 
 def main():
     rclpy.init()
