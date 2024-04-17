@@ -1,0 +1,51 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/aa/robot_ws/install/visualization_msgs/include/**",
+        "/home/aa/robot_ws/install/test_msgs/include/**",
+        "/home/aa/robot_ws/install/example_interfaces/include/**",
+        "/home/aa/robot_ws/install/action_msgs/include/**",
+        "/home/aa/robot_ws/install/unique_identifier_msgs/include/**",
+        "/home/aa/robot_ws/install/trajectory_msgs/include/**",
+        "/home/aa/robot_ws/install/stereo_msgs/include/**",
+        "/home/aa/robot_ws/install/std_srvs/include/**",
+        "/home/aa/robot_ws/install/shape_msgs/include/**",
+        "/home/aa/robot_ws/install/sensor_msgs/include/**",
+        "/home/aa/robot_ws/install/nav_msgs/include/**",
+        "/home/aa/robot_ws/install/diagnostic_msgs/include/**",
+        "/home/aa/robot_ws/install/geometry_msgs/include/**",
+        "/home/aa/robot_ws/install/actionlib_msgs/include/**",
+        "/home/aa/robot_ws/install/std_msgs/include/**",
+        "/home/aa/robot_ws/install/statistics_msgs/include/**",
+        "/home/aa/robot_ws/install/rmw_microxrcedds/include/**",
+        "/home/aa/robot_ws/install/rosidl_typesupport_microxrcedds_cpp/include/**",
+        "/home/aa/robot_ws/install/rosidl_typesupport_microxrcedds_c/include/**",
+        "/home/aa/robot_ws/install/rosgraph_msgs/include/**",
+        "/home/aa/robot_ws/install/rclc_parameter/include/**",
+        "/home/aa/robot_ws/install/rclc/include/**",
+        "/home/aa/robot_ws/install/composition_interfaces/include/**",
+        "/home/aa/robot_ws/install/rcl_interfaces/include/**",
+        "/home/aa/robot_ws/install/micro_ros_utilities/include/**",
+        "/home/aa/robot_ws/install/micro_ros_agent/include/**",
+        "/home/aa/robot_ws/install/micro_ros_msgs/include/**",
+        "/home/aa/robot_ws/install/lifecycle_msgs/include/**",
+        "/home/aa/robot_ws/install/complex_msgs/include/**",
+        "/home/aa/robot_ws/install/builtin_interfaces/include/**",
+        "/home/aa/colcon_ws/install/ros2_aruco_interfaces/include/**",
+        "/opt/ros/humble/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
