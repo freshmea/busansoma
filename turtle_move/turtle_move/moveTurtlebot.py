@@ -26,46 +26,51 @@ class Tbot_move(Node):
         self.velocity = 0.0
         self.angular_velocity = 0.0
         self.laserScan = LaserScan()
+        self.laserScan.ranges = [0.0]
         self.odom = Odometry()
         self.imu = Imu()
         self.battery = BatteryState()
 
     def laser_callback(self, msg: LaserScan):
         self.laserScan = msg
-        self.get_logger().info(f"laser: {msg.ranges[0]}")
+        self.get_logger().info(f"ranges[0] : {self.laserScan.ranges[0]}")
 
     def odom_callback(self, msg: Odometry):
         self.odom = msg
-        self.get_logger().info(f"odom: {msg.pose.pose.position.x}")
 
     def imu_callback(self, msg: Imu):
         self.imu = msg
-        self.get_logger().info(f"imu: {msg.orientation.x}")
 
     def battery_callback(self, msg: BatteryState):
         self.battery = msg
-        self.get_logger().info(f"battery: {msg.percentage}")
 
     def pub_callback(self):
         msg = Twist()
         msg.linear.x = self.velocity
         msg.angular.z = self.angular_velocity
         msg = self.restriction(msg)
+        self.get_logger().info(f"velocity: {msg.linear.x} angular_velocity: {msg.angular.z}")
         self.pub.publish(msg)
 
     def restriction(self, msg: Twist):
-        # check +MAX_VEL 
         msg.linear.x = min(MAX_VEL, msg.linear.x)
-        # check -MAX_VEL
         msg.linear.x = max(-MAX_VEL, msg.linear.x)
-        # check +MAX_ANGLE
         msg.angular.z = min(MAX_ANGLE, msg.angular.z)
-        # check -MAX_ANGLE
         msg.angular.z = max(-MAX_ANGLE, msg.angular.z)
         return msg
 
     def update_callback(self):
-        pass
+        if self.laserScan.ranges[0] > 0.25:
+            self.get_logger().info(f"forward!! range: {self.laserScan.ranges[0]}")
+            self.velocity = 0.1
+            self.angular_velocity = 0.0
+        elif self.laserScan.ranges[0] < 0.2:
+            self.get_logger().info(f"backward!! range: {self.laserScan.ranges[0]}")
+            self.velocity = -0.1
+            self.angular_velocity = 0.0
+        else:
+            self.velocity = 0.0
+            self.angular_velocity = 0.0
 
     def pose_callback(self, msg: Pose):
         self.pose_x = msg.x
