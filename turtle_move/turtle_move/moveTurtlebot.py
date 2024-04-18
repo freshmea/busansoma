@@ -7,6 +7,7 @@ from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Imu
 from sensor_msgs.msg import BatteryState
+from rclpy.qos import qos_profile_sensor_data
 
 MAX_VEL = 0.21
 MAX_ANGLE = 2.84
@@ -17,7 +18,7 @@ MAX_ANGLE = 2.84
 class Tbot_move(Node):
     def __init__(self):
         super().__init__('turtleBotMove') # type: ignore
-        laser_profile = sensor_profile
+        laser_profile = qos_profile_sensor_data
         self.create_timer(0.01, self.pub_callback)
         self.create_timer(1/60, self.update_callback)
         self.pub = self.create_publisher(Twist, 'cmd_vel', 10)
