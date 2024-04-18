@@ -33,7 +33,6 @@ class Tbot_move(Node):
 
     def laser_callback(self, msg: LaserScan):
         self.laserScan = msg
-        self.get_logger().info(f"ranges[0] : {self.laserScan.ranges[0]}")
 
     def odom_callback(self, msg: Odometry):
         self.odom = msg
@@ -49,7 +48,6 @@ class Tbot_move(Node):
         msg.linear.x = self.velocity
         msg.angular.z = self.angular_velocity
         msg = self.restriction(msg)
-        self.get_logger().info(f"velocity: {msg.linear.x} angular_velocity: {msg.angular.z}")
         self.pub.publish(msg)
 
     def restriction(self, msg: Twist):
@@ -61,11 +59,9 @@ class Tbot_move(Node):
 
     def update_callback(self):
         if self.laserScan.ranges[0] > 0.25:
-            self.get_logger().info(f"forward!! range: {self.laserScan.ranges[0]}")
             self.velocity = 0.1
             self.angular_velocity = 0.0
         elif self.laserScan.ranges[0] < 0.2:
-            self.get_logger().info(f"backward!! range: {self.laserScan.ranges[0]}")
             self.velocity = -0.1
             self.angular_velocity = 0.0
         else:
