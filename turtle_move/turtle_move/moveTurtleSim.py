@@ -2,7 +2,8 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from turtlesim.msg import Pose
-import time
+from rclpy.duration import Duration
+
 
 
 class T_move(Node):
@@ -18,7 +19,7 @@ class T_move(Node):
         self.pose_y = 0.0
         self.pose_theta = 0.0
         self.phase = 0
-        self.prevTime = time.time()
+        self.prevTime = self.get_clock().now()
 
     def pub_callback(self):
         msg = Twist()
@@ -31,15 +32,15 @@ class T_move(Node):
             # 회전
             self.x = 0.0
             self.z = 2.0
-            if (time.time() - self.prevTime) > 1.25 :
-                self.prevTime = time.time()
+            if (self.get_clock().now() - self.prevTime) > Duration(seconds = 1, nanoseconds=250_000_000):
+                self.prevTime = self.get_clock().now()
                 self.phase = 1
         elif self.phase == 1:
             # 진직
             self.x = 1.0
             self.z = 0.0
-            if (time.time() - self.prevTime) > 2:
-                self.prevTime = time.time()
+            if (self.get_clock().now() - self.prevTime) > Duration(seconds=2):
+                self.prevTime = self.get_clock().now()
                 self.phase = 0
         self.get_logger().info(f"phase: {self.phase}")
 
