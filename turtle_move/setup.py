@@ -25,6 +25,7 @@ setup(
         'console_scripts': [
             'moveTurtleSim = turtle_move.moveTurtleSim:main',
             'moveTurtleSim2 = turtle_move.moveTurtleSim2:main',
+            'moveTurtlebot = turtle_move.moveTurtlebot:main',
         ],
     },
 )

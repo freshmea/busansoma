@@ -30,6 +30,18 @@ https://bedecked-decision-12c.notion.site/6-2590523eb9234f95b8c54fe8658d5396?pvs
 ---
 
 - launch 파일 작성
+- topic 다루기 실습 - time
+- launch 파일 실습
+- 사각형 그리기 별 그리기 예제
 
+---
+## 2024-4-18
+---
 
-
+- 사각형 별 예제 풀이
+- 터틀봇3 세팅
+- ssh 접근
+- ROS_DOMAIN_ID 설정
+- 터틀봇3 패키지 설치
+- teleopkey 실행
+- 
