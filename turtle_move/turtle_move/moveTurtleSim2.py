@@ -1,9 +1,10 @@
+from xml.etree.ElementTree import PI
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from turtlesim.msg import Pose
-import time
-
+from math import pi
+from rclpy.duration import Duration
 
 class T_move(Node):
     def __init__(self):
@@ -18,7 +19,7 @@ class T_move(Node):
         self.pose_y = 0.0
         self.pose_theta = 0.0
         self.phase = 0
-        self.prevTime = time.time()
+        self.start_time = self.get_clock().now()
 
     def pub_callback(self):
         msg = Twist()
@@ -28,20 +29,21 @@ class T_move(Node):
 
     def update_callback(self):
         if self.phase == 0:
-            # 회전
+            #rotation
             self.x = 0.0
             self.z = 2.0
-            if (time.time() - self.prevTime) > 1.25 :
-                self.prevTime = time.time()
+            if (self.get_clock().now() - self.start_time) > Duration(seconds=1, nanoseconds=245_000_000):
                 self.phase = 1
+                self.start_time = self.get_clock().now()
         elif self.phase == 1:
-            # 진직
-            self.x = 1.0
+            #forward
+            self.x = 2.0
             self.z = 0.0
-            if (time.time() - self.prevTime) > 2:
-                self.prevTime = time.time()
+            if (self.get_clock().now() - self.start_time) > Duration(seconds=1):
                 self.phase = 0
-        self.get_logger().info(f"phase: {self.phase}")
+                self.start_time = self.get_clock().now()
+
+        self.get_logger().info(f"phase: {self.phase} theta: {self.pose_theta} x: {self.pose_x} y: {self.pose_y}")
 
     def pose_callback(self, msg: Pose):
         self.pose_x = msg.x

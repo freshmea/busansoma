@@ -24,6 +24,7 @@ setup(
     entry_points={
         'console_scripts': [
             'moveTurtleSim = turtle_move.moveTurtleSim:main',
+            'moveTurtleSim2 = turtle_move.moveTurtleSim2:main',
         ],
     },
 )
