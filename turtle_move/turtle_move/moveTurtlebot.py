@@ -1,28 +1,33 @@
+from geometry_msgs.msg import Twist
+
+from nav_msgs.msg import Odometry
+
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import Twist
-from turtlesim.msg import Pose
-from rclpy.duration import Duration
-from sensor_msgs.msg import LaserScan
-from nav_msgs.msg import Odometry
-from sensor_msgs.msg import Imu
-from sensor_msgs.msg import BatteryState
 from rclpy.qos import qos_profile_sensor_data
+
+from sensor_msgs.msg import BatteryState
+from sensor_msgs.msg import Imu
+from sensor_msgs.msg import LaserScan
+
+from turtlesim.msg import Pose
+
 
 MAX_VEL = 0.21
 MAX_ANGLE = 2.84
 
+
 class Tbot_move(Node):
     def __init__(self):
-        super().__init__('turtleBotMove') # type: ignore
+        super().__init__("turtleBotMove")  # type: ignore
         laser_profile = qos_profile_sensor_data
         self.create_timer(0.01, self.pub_callback)
-        self.create_timer(1/60, self.update_callback)
-        self.pub = self.create_publisher(Twist, 'cmd_vel', 10)
-        self.create_subscription(LaserScan, 'scan', self.laser_callback, laser_profile)
-        self.create_subscription(Odometry, 'odom', self.odom_callback, 10)
-        self.create_subscription(Imu, 'imu', self.imu_callback, 10)
-        self.create_subscription(BatteryState, 'battery', self.battery_callback, 10)
+        self.create_timer(1 / 60, self.update_callback)
+        self.pub = self.create_publisher(Twist, "cmd_vel", 10)
+        self.create_subscription(LaserScan, "scan", self.laser_callback, laser_profile)
+        self.create_subscription(Odometry, "odom", self.odom_callback, 10)
+        self.create_subscription(Imu, "imu", self.imu_callback, 10)
+        self.create_subscription(BatteryState, "battery", self.battery_callback, 10)
         self.velocity = 0.0
         self.angular_velocity = 0.0
         self.laserScan = LaserScan()
@@ -73,6 +78,7 @@ class Tbot_move(Node):
         self.pose_y = msg.y
         self.pose_theta = msg.theta
 
+
 def main():
     rclpy.init()
     node = Tbot_move()
@@ -82,5 +88,6 @@ def main():
         node.destroy_node()
         rclpy.shutdown()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
