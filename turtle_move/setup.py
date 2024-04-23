@@ -33,6 +33,7 @@ setup(
             "moveTurtleSim = turtle_move.moveTurtleSim:main",
             "moveTurtleSim2 = turtle_move.moveTurtleSim2:main",
             "moveTurtlebot = turtle_move.moveTurtlebot:main",
+            "simpleParam = turtle_move.simpleParam:main",
         ],
     },
 )
