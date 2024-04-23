@@ -1,17 +1,12 @@
-from geometry_msgs.msg import Twist
-
-from nav_msgs.msg import Odometry
-
 import rclpy
+from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
+from rcl_interfaces.msg import Parameter, SetParametersResult
 from rclpy.node import Node
+from rclpy.parameter import Parameter
 from rclpy.qos import qos_profile_sensor_data
-
-from sensor_msgs.msg import BatteryState
-from sensor_msgs.msg import Imu
-from sensor_msgs.msg import LaserScan
-
+from sensor_msgs.msg import BatteryState, Imu, LaserScan
 from turtlesim.msg import Pose
-
 
 MAX_VEL = 0.21
 MAX_ANGLE = 2.84
@@ -20,6 +15,13 @@ MAX_ANGLE = 2.84
 class Tbot_move(Node):
     def __init__(self):
         super().__init__("turtleBotMove")  # type: ignore
+
+        self.declare_parameter("max_vel", 0.21)
+        self.declare_parameter("max_angle", 2.84)
+        self.max_vel = self.get_parameter("max_vel").value
+        self.max_angle = self.get_parameter("max_angle").value
+        self.add_on_set_parameters_callback(self.param_update)
+
         laser_profile = qos_profile_sensor_data
         self.create_timer(0.01, self.pub_callback)
         self.create_timer(1 / 60, self.update_callback)
@@ -64,10 +66,10 @@ class Tbot_move(Node):
 
     def update_callback(self):
         if self.laserScan.ranges[0] > 0.25:
-            self.velocity = 0.1
+            self.velocity = self.max_vel/2 #type: ignore
             self.angular_velocity = 0.0
         elif self.laserScan.ranges[0] < 0.2:
-            self.velocity = -0.1
+            self.velocity = -self.max_vel/2 #type: ignore
             self.angular_velocity = 0.0
         else:
             self.velocity = 0.0
@@ -77,6 +79,16 @@ class Tbot_move(Node):
         self.pose_x = msg.x
         self.pose_y = msg.y
         self.pose_theta = msg.theta
+
+    def param_update(self, params: list[Parameter]):
+        for param in params:
+            if param.name == "max_vel":
+                self.max_vel = param.value
+                self.get_logger().info(f"Updated param: {self.max_vel}")
+            if param.name == "max_angle":
+                self.max_angle = param.value
+                self.get_logger().info(f"Updated param: {self.max_angle}")
+        return SetParametersResult(successful=True)
 
 
 def main():
