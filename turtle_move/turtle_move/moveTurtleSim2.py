@@ -1,11 +1,9 @@
 from math import pi
 
-from geometry_msgs.msg import Twist
-
 import rclpy
+from geometry_msgs.msg import Twist
 from rclpy.duration import Duration
 from rclpy.node import Node
-
 from turtlesim.msg import Pose
 
 
@@ -65,7 +63,6 @@ def main():
         rclpy.spin(node)
     except KeyboardInterrupt:
         node.destroy_node()
-        rclpy.shutdown()
 
 
 if __name__ == "__main__":
