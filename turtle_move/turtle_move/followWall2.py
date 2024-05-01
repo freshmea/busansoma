@@ -16,6 +16,7 @@ class FollowWall(Node):
 
         self.declare_parameter("max_vel", 0.11)
         self.declare_parameter("max_angle", 1.84)
+        # max slice parameter int type
         self.declare_parameter("max_slice", 8)
         self.max_vel = self.get_parameter("max_vel").value
         self.max_angle = self.get_parameter("max_angle").value
@@ -45,12 +46,11 @@ class FollowWall(Node):
 
     def laser_callback(self, msg: LaserScan):
         self.laserScan = msg
-        
         for i, data in enumerate(self.laserScan.ranges):
             if data == float('inf'):
                 self.laserScan.ranges[i] = 3.5
         for i in range(self.max_slice):
-            self.scan_avg[i] = np.average(self.laserScan.ranges[int(360/self.max_slice*i):int(360/self.max_slice*(i+1)-1)])
+            self.scan_avg[i] = float(np.average(self.laserScan.ranges[int(360/self.max_slice*i):int(360/self.max_slice*(i+1)-1)]))
 
     def odom_callback(self, msg: Odometry):
         self.odom = msg
