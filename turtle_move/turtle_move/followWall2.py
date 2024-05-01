@@ -7,7 +7,6 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import BatteryState, Imu, LaserScan
-from turtlesim.msg import Pose
 
 
 class FollowWall(Node):
@@ -16,7 +15,6 @@ class FollowWall(Node):
 
         self.declare_parameter("max_vel", 0.11)
         self.declare_parameter("max_angle", 1.84)
-        # max slice parameter int type
         self.declare_parameter("max_slice", 8)
         self.max_vel = self.get_parameter("max_vel").value
         self.max_angle = self.get_parameter("max_angle").value
