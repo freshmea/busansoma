@@ -8,13 +8,10 @@ from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import BatteryState, Imu, LaserScan
 from turtlesim.msg import Pose
 
-MAX_VEL = 0.21
-MAX_ANGLE = 2.84
 
-
-class Tbot_move(Node):
+class FollowWall(Node):
     def __init__(self):
-        super().__init__("turtleBotMove")  # type: ignore
+        super().__init__("followWall")  # type: ignore
 
         self.declare_parameter("max_vel", 0.21)
         self.declare_parameter("max_angle", 2.84)
@@ -32,6 +29,9 @@ class Tbot_move(Node):
         self.create_subscription(BatteryState, "battery_state", self.battery_callback, 10)
         self.velocity = 0.0
         self.angular_velocity = 0.0
+        self.left = 0.0
+        self.lefttop = 0.0
+        self.leftbottom = 0.0
         self.laserScan = LaserScan()
         self.laserScan.ranges = [0.0]
         self.odom = Odometry()
@@ -40,6 +40,9 @@ class Tbot_move(Node):
 
     def laser_callback(self, msg: LaserScan):
         self.laserScan = msg
+        self.left = self.laserScan.ranges[90]
+        self.lefttop = self.laserScan.ranges[45]
+        self.leftbottom = self.laserScan.ranges[135]
 
     def odom_callback(self, msg: Odometry):
         self.odom = msg
@@ -58,27 +61,45 @@ class Tbot_move(Node):
         self.pub.publish(msg)
 
     def restriction(self, msg: Twist):
-        msg.linear.x = min(MAX_VEL, msg.linear.x)
-        msg.linear.x = max(-MAX_VEL, msg.linear.x)
-        msg.angular.z = min(MAX_ANGLE, msg.angular.z)
-        msg.angular.z = max(-MAX_ANGLE, msg.angular.z)
+        msg.linear.x = min(self.max_vel, msg.linear.x) #type: ignore
+        msg.linear.x = max(-self.max_vel, msg.linear.x) #type: ignore
+        msg.angular.z = min(self.max_angle, msg.angular.z) #type: ignore
+        msg.angular.z = max(-self.max_angle, msg.angular.z) #type: ignore
         return msg
 
     def update_callback(self):
-        if self.laserScan.ranges[0] > 0.25:
-            self.velocity = self.max_vel/2 #type: ignore
-            self.angular_velocity = 0.0
-        elif self.laserScan.ranges[0] < 0.2:
-            self.velocity = -self.max_vel/2 #type: ignore
-            self.angular_velocity = 0.0
+        # if self.laserScan.ranges[0] > 0.25:
+        #     self.velocity = self.max_vel/2 #type: ignore
+        #     self.angular_velocity = 0.0
+        # elif self.laserScan.ranges[0] < 0.2:
+        #     self.velocity = -self.max_vel/2 #type: ignore
+        #     self.angular_velocity = 0.0
+        # else:
+        #     self.velocity = 0.0
+        #     self.angular_velocity = 0.0
+        self.velocity = self.max_vel
+        self.ratio = 0.0
+        try:
+            self.ratio = self.lefttop / self.left
+        except ZeroDivisionError:
+            self.ratio = 0.0
+        # if  self.ratio  == 1.414:
+        #     self.angular_velocity = 0.0
+        # elif self.ratio < 1.414:
+        #     self.angular_velocity = -self.max_angle / 5  #type: ignore
+        # elif self.ratio > 1.414:
+        #     self.angular_velocity = self.max_angle / 5 #type: ignore
+
+        if self.left < 0.4:
+            self.angular_velocity = -self.max_angle / 5 #type: ignore
+        elif self.left > 0.6:
+            if self.ratio < 1.414:
+                self.angular_velocity = -self.max_angle / 5  #type: ignore
+            elif self.ratio > 1.414:
+                self.angular_velocity = self.max_angle / 5 #type: ignore
         else:
-            self.velocity = 0.0
             self.angular_velocity = 0.0
 
-    def pose_callback(self, msg: Pose):
-        self.pose_x = msg.x
-        self.pose_y = msg.y
-        self.pose_theta = msg.theta
 
     def param_update(self, params: list[Parameter]):
         for param in params:
@@ -93,7 +114,7 @@ class Tbot_move(Node):
 
 def main():
     rclpy.init()
-    node = Tbot_move()
+    node = FollowWall()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
