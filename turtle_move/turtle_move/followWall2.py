@@ -14,8 +14,8 @@ class FollowWall(Node):
     def __init__(self):
         super().__init__("followWall")  # type: ignore
 
-        self.declare_parameter("max_vel", 0.21)
-        self.declare_parameter("max_angle", 2.84)
+        self.declare_parameter("max_vel", 0.11)
+        self.declare_parameter("max_angle", 1.84)
         self.declare_parameter("max_slice", 8)
         self.max_vel = self.get_parameter("max_vel").value
         self.max_angle = self.get_parameter("max_angle").value
@@ -37,10 +37,11 @@ class FollowWall(Node):
         self.leftbottom = 0.0
         self.laserScan = LaserScan()
         self.laserScan.ranges = [0.0]
-        self.scan_avg = list([0.0 for i in range(self.max_slice)]) # type: ignore
+        self.scan_avg = list([3.5 for i in range(self.max_slice)]) # type: ignore
         self.odom = Odometry()
         self.imu = Imu()
         self.battery = BatteryState()
+        self.wall_detect = False
 
     def laser_callback(self, msg: LaserScan):
         self.laserScan = msg
@@ -50,7 +51,6 @@ class FollowWall(Node):
                 self.laserScan.ranges[i] = 3.5
         for i in range(self.max_slice):
             self.scan_avg[i] = np.average(self.laserScan.ranges[int(360/self.max_slice*i):int(360/self.max_slice*(i+1)-1)])
-            self.get_logger().info(f"scan_avg[{i}] : {self.scan_avg[i]}")
 
     def odom_callback(self, msg: Odometry):
         self.odom = msg
@@ -76,22 +76,30 @@ class FollowWall(Node):
         return msg
 
     def update_callback(self):
-        pass
-        # if self.laserScan.ranges[0] > 0.25:
-        #     self.velocity = self.max_vel/2 #type: ignore
-        #     self.angular_velocity = 0.0
-        # elif self.laserScan.ranges[0] < 0.2:
-        #     self.velocity = -self.max_vel/2 #type: ignore
-        #     self.angular_velocity = 0.0
-        # else:
-        #     self.velocity = 0.0
-        #     self.angular_velocity = 0.0
-        # if  self.ratio  == 1.414:
-        #     self.angular_velocity = 0.0
-        # elif self.ratio < 1.414:
-        #     self.angular_velocity = -self.max_angle / 5  #type: ignore
-        # elif self.ratio > 1.414:
-        #     self.angular_velocity = self.max_angle / 5 #type: ignore
+        # 벽을 찾은 후에 벽을 따라감 찾기전에는 직진
+        if self.wall_detect:
+            # 정면에 장애물이 있을 때
+            if np.average([self.scan_avg[0], self.scan_avg[7]]) < 0.4:
+                self.velocity = 0.0
+                self.angular_velocity = self.max_angle / 5 # type: ignore
+            else:
+                # 벽을 따라 일정 거리 유지하면서 이동
+                if self.scan_avg[1] > 0.4:
+                    self.velocity = self.max_vel / 2 # type: ignore
+                    self.angular_velocity = self.max_angle / 5 # type: ignore
+                elif self.scan_avg[1] < 0.3:
+                    self.velocity = self.max_vel / 2 # type: ignore
+                    self.angular_velocity = -self.max_angle / 5 # type: ignore
+                else:
+                    self.velocity = self.max_vel
+                    self.angular_velocity = 0.0
+        else:
+            self.velocity = self.max_vel
+            self.angular_velocity = 0.0
+            # 정면에 벽을 찾았을 때
+            if (self.scan_avg[0] < 0.4) or (self.scan_avg[7] < 0.4):
+                self.wall_detect = True
+                self.get_logger().info("Wall Detected")
 
 
     def param_update(self, params: list[Parameter]):
