@@ -1,6 +1,7 @@
-from setuptools import find_packages, setup
 import os
 from glob import glob
+
+from setuptools import find_packages, setup
 
 package_name = 'my_pkg'
 
@@ -26,7 +27,9 @@ setup(
             'simplepub = my_pkg.simplepub:main',
             'simplesub = my_pkg.simplesub:main',
             'simpletimepub = my_pkg.simpletimepub:main',
-            'simpletimesub = my_pkg.simpletimesub:main'
+            'simpletimesub = my_pkg.simpletimesub:main',
+            'simpleServiceServer = my_pkg.simpleServiceServer:main',
+            'simpleServiceClient = my_pkg.simpleServiceClient:main',
         ],
     },
 )

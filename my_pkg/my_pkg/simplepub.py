@@ -1,6 +1,5 @@
 import rclpy
 from rclpy.node import Node
-
 from std_msgs.msg import String
 
 
@@ -24,7 +23,6 @@ def main():
         rclpy.spin(node)
     except KeyboardInterrupt:
         node.destroy_node()
-        rclpy.shutdown()
 
 
 if __name__ == "__main__":
