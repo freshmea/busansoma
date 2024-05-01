@@ -7,6 +7,7 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import BatteryState, Imu, LaserScan
+from std_srvs.srv import SetBool
 
 
 class FollowWall(Node):
@@ -21,6 +22,7 @@ class FollowWall(Node):
         self.max_slice : int = self.get_parameter("max_slice").value # type: ignore
         self.add_on_set_parameters_callback(self.param_update)
 
+        self.create_service(SetBool, "stopturtle", self.stop_callback)
         laser_profile = qos_profile_sensor_data
         self.create_timer(0.01, self.pub_callback)
         self.create_timer(1 / 60, self.update_callback)
@@ -41,6 +43,7 @@ class FollowWall(Node):
         self.imu = Imu()
         self.battery = BatteryState()
         self.wall_detect = False
+        self.stopGo = False
 
     def laser_callback(self, msg: LaserScan):
         self.laserScan = msg
@@ -58,6 +61,10 @@ class FollowWall(Node):
 
     def battery_callback(self, msg: BatteryState):
         self.battery = msg
+        
+    def stop_callback(self, request, response):
+        self.stopGo = request.data
+        return response
 
     def pub_callback(self):
         msg = Twist()
@@ -74,30 +81,34 @@ class FollowWall(Node):
         return msg
 
     def update_callback(self):
-        # 벽을 찾은 후에 벽을 따라감 찾기전에는 직진
-        if self.wall_detect:
-            # 정면에 장애물이 있을 때
-            if np.average([self.scan_avg[0], self.scan_avg[7]]) < 0.4:
-                self.velocity = 0.0
-                self.angular_velocity = self.max_angle / 5 # type: ignore
-            else:
-                # 벽을 따라 일정 거리 유지하면서 이동
-                if self.scan_avg[1] > 0.4:
-                    self.velocity = self.max_vel / 2 # type: ignore
+        if self.stopGo:
+            # 벽을 찾은 후에 벽을 따라감 찾기전에는 직진
+            if self.wall_detect:
+                # 정면에 장애물이 있을 때
+                if np.average([self.scan_avg[0], self.scan_avg[7]]) < 0.4:
+                    self.velocity = 0.0
                     self.angular_velocity = self.max_angle / 5 # type: ignore
-                elif self.scan_avg[1] < 0.3:
-                    self.velocity = self.max_vel / 2 # type: ignore
-                    self.angular_velocity = -self.max_angle / 5 # type: ignore
                 else:
-                    self.velocity = self.max_vel
-                    self.angular_velocity = 0.0
+                    # 벽을 따라 일정 거리 유지하면서 이동
+                    if self.scan_avg[1] > 0.4:
+                        self.velocity = self.max_vel / 2 # type: ignore
+                        self.angular_velocity = self.max_angle / 5 # type: ignore
+                    elif self.scan_avg[1] < 0.3:
+                        self.velocity = self.max_vel / 2 # type: ignore
+                        self.angular_velocity = -self.max_angle / 5 # type: ignore
+                    else:
+                        self.velocity = self.max_vel
+                        self.angular_velocity = 0.0
+            else:
+                self.velocity = self.max_vel
+                self.angular_velocity = 0.0
+                # 정면에 벽을 찾았을 때
+                if (self.scan_avg[0] < 0.4) or (self.scan_avg[7] < 0.4):
+                    self.wall_detect = True
+                    self.get_logger().info("Wall Detected")
         else:
-            self.velocity = self.max_vel
+            self.velocity = 0.0
             self.angular_velocity = 0.0
-            # 정면에 벽을 찾았을 때
-            if (self.scan_avg[0] < 0.4) or (self.scan_avg[7] < 0.4):
-                self.wall_detect = True
-                self.get_logger().info("Wall Detected")
 
 
     def param_update(self, params: list[Parameter]):
