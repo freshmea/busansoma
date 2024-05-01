@@ -26,7 +26,7 @@ class SimpleServiceClient(Node):
 
     def future_callback(self, future):
         response = future.result()
-        self.get_logger().info(f"response : {response.message}")
+        self.get_logger().info(f"message : {response.message}")
         self.get_logger().info(f"success : {response.success}")
 
 
