@@ -3,6 +3,7 @@ import rclpy
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from rcl_interfaces.msg import Parameter, SetParametersResult
+from rclpy.duration import Duration
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.qos import qos_profile_sensor_data
@@ -44,11 +45,15 @@ class FollowWall(Node):
         self.battery = BatteryState()
         self.wall_detect = False
         self.stopGo = True
+        self.prevTime = self.get_clock().now()
+        self.phase = 0
+        # 랜덤 회전 시간 1~3 초 float
+        self.rotation_random_time = np.random.uniform(1, 5)
 
     def laser_callback(self, msg: LaserScan):
         self.laserScan = msg
         for i, data in enumerate(self.laserScan.ranges):
-            if data == 0.0 or data == float("inf"):
+            if data == 0.0:
                 self.laserScan.ranges[i] = 3.5
         for i in range(self.max_slice):
             self.scan_avg[i] = float(np.average(self.laserScan.ranges[int(360/self.max_slice*i):int(360/self.max_slice*(i+1)-1)]))
@@ -82,30 +87,58 @@ class FollowWall(Node):
 
     def update_callback(self):
         if self.stopGo:
-            # 벽을 찾은 후에 벽을 따라감 찾기전에는 직진
-            if self.wall_detect:
-                # 정면에 장애물이 있을 때
-                if (self.scan_avg[0] < 0.4) or (self.scan_avg[7] < 0.4):
-                    self.velocity = 0.0
-                    self.angular_velocity = -self.max_angle / 5 # type: ignore
-                else:
-                    # 벽을 따라 일정 거리 유지하면서 이동
-                    if self.scan_avg[1] > 0.4:
-                        self.velocity = self.max_vel / 2 # type: ignore
-                        self.angular_velocity = self.max_angle / 5 # type: ignore
-                    elif self.scan_avg[1] < 0.3:
-                        self.velocity = self.max_vel / 2 # type: ignore
+            if self.phase == 0:
+                self.get_logger().info("Phase 0")
+                # 벽을 찾은 후에 벽을 따라감 찾기전에는 직진
+                if self.wall_detect:
+                    # 정면에 장애물이 있을 때
+                    if (self.scan_avg[0] < 0.4) or (self.scan_avg[7] < 0.4):
+                        self.velocity = 0.0
                         self.angular_velocity = -self.max_angle / 5 # type: ignore
                     else:
-                        self.velocity = self.max_vel
-                        self.angular_velocity = 0.0
+                        # 벽을 따라 일정 거리 유지하면서 이동
+                        if self.scan_avg[1] > 0.4:
+                            self.velocity = self.max_vel / 2 # type: ignore
+                            self.angular_velocity = self.max_angle / 5 # type: ignore
+                        elif self.scan_avg[1] < 0.3:
+                            self.velocity = self.max_vel / 2 # type: ignore
+                            self.angular_velocity = -self.max_angle / 5 # type: ignore
+                        else:
+                            self.velocity = self.max_vel
+                            self.angular_velocity = 0.0
+                else:
+                    self.velocity = self.max_vel
+                    self.angular_velocity = 0.0
+                    # 정면에 벽을 찾았을 때
+                    if (self.scan_avg[0] < 0.4) or (self.scan_avg[7] < 0.4):
+                        self.wall_detect = True
+                        self.get_logger().info("Wall Detected")
+                # 시간 체크
+                if self.get_clock().now() - self.prevTime > Duration(seconds=30):
+                    self.phase = 1
+                    self.prevTime = self.get_clock().now()
+                    self.rotation_random_time = np.random.uniform(1, 5)
             else:
-                self.velocity = self.max_vel
-                self.angular_velocity = 0.0
-                # 정면에 벽을 찾았을 때
-                if (self.scan_avg[0] < 0.4) or (self.scan_avg[7] < 0.4):
-                    self.wall_detect = True
-                    self.get_logger().info("Wall Detected")
+                self.get_logger().info("Phase 1")
+                # 랜덤 시간 만큼 으로 회전
+                if (self.get_clock().now() - self.prevTime) < Duration(seconds=int(self.rotation_random_time), nanoseconds=int((self.rotation_random_time - int(self.rotation_random_time)) * 1e9)):
+                    self.velocity = 0.0
+                    self.angular_velocity = self.max_angle / 5 # type: ignore
+                    self.get_logger().info(f"Rotation Time: {self.rotation_random_time}")
+                else:
+                    # 직진
+                    self.velocity = self.max_vel
+                    self.angular_velocity = 0.0
+                    self.get_logger().info("Go Straight")
+                    # 앞에 장애물이 있을 때 회전
+                    if (self.scan_avg[0] < 0.5) or (self.scan_avg[7] < 0.5):
+                        self.velocity = 0.0
+                        self.angular_velocity = self.max_angle / 5 # type: ignore
+                        self.get_logger().info("Obstacle Detected")
+                # 시간 체크
+                if self.get_clock().now() - self.prevTime > Duration(seconds=30):
+                    self.phase = 0
+                    self.prevTime = self.get_clock().now()
         else:
             self.velocity = 0.0
             self.angular_velocity = 0.0
