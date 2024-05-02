@@ -50,7 +50,6 @@ class FollowWall(Node):
         for i, data in enumerate(self.laserScan.ranges):
             if data == 0.0:
                 self.laserScan.ranges[i] = 3.5
-        self.get_logger().info(f"laserScan: {self.laserScan.ranges}")
         for i in range(self.max_slice):
             self.scan_avg[i] = float(np.average(self.laserScan.ranges[int(360/self.max_slice*i):int(360/self.max_slice*(i+1)-1)]))
 
@@ -62,7 +61,7 @@ class FollowWall(Node):
 
     def battery_callback(self, msg: BatteryState):
         self.battery = msg
-        
+
     def stop_callback(self, request, response):
         self.stopGo = request.data
         return response
