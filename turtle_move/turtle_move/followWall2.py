@@ -43,13 +43,14 @@ class FollowWall(Node):
         self.imu = Imu()
         self.battery = BatteryState()
         self.wall_detect = False
-        self.stopGo = False
+        self.stopGo = True
 
     def laser_callback(self, msg: LaserScan):
         self.laserScan = msg
         for i, data in enumerate(self.laserScan.ranges):
-            if data == float('inf'):
+            if data == 0.0:
                 self.laserScan.ranges[i] = 3.5
+        self.get_logger().info(f"laserScan: {self.laserScan.ranges}")
         for i in range(self.max_slice):
             self.scan_avg[i] = float(np.average(self.laserScan.ranges[int(360/self.max_slice*i):int(360/self.max_slice*(i+1)-1)]))
 
@@ -87,7 +88,7 @@ class FollowWall(Node):
                 # 정면에 장애물이 있을 때
                 if np.average([self.scan_avg[0], self.scan_avg[7]]) < 0.4:
                     self.velocity = 0.0
-                    self.angular_velocity = self.max_angle / 5 # type: ignore
+                    self.angular_velocity = -self.max_angle / 5 # type: ignore
                 else:
                     # 벽을 따라 일정 거리 유지하면서 이동
                     if self.scan_avg[1] > 0.4:
