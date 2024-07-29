@@ -9,17 +9,26 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(OpenCV REQUIRED)
 
 # build
-add_executable(helloworld_publisher src/helloworld_publisher.cpp)
-ament_target_dependencies(helloworld_publisher rclcpp std_msgs)
+add_executable(helloworld src/helloworld.cpp)
+
+add_executable(helloOpenCV src/helloOpenCV.cpp)
+target_link_libraries(helloOpenCV ${OpenCV_LIBS})
+
+add_executable(helloRclcpp src/helloRclcpp.cpp)
+ament_target_dependencies(helloRclcpp rclcpp std_msgs)
 
 # install
 install(TARGETS
-  helloworld_publisher
+  helloworld
+  helloOpenCV
+  helloRclcpp
   DESTINATION lib/${PROJECT_NAME}
 )
 
+# test
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   set(ament_cmake_copyright_FOUND TRUE)
