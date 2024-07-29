@@ -9,9 +9,8 @@ void printHello();
 int main()
 {
     rclcpp::init(0, nullptr);
-    auto node = std::make_shared<rclcpp::Node>("hello_rclcpp");
-    // add timer
-    auto timer = node->create_wall_timer(1s, printHello);
+    std::shared_ptr<rclcpp::Node> node = std::make_shared<rclcpp::Node>("hello_rclcpp");
+    rclcpp::TimerBase::SharedPtr timer = node->create_wall_timer(1s, printHello);
     rclcpp::spin(node);
     rclcpp::shutdown();
     return 0;
